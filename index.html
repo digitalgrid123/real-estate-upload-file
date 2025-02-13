@@ -9,6 +9,16 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"
+      crossorigin="anonymous"
+    ></script>
 
     <link rel="icon" href="images/company-logo.png" type="image/x-icon" />
 
@@ -28,17 +38,52 @@
 
       body,
       html {
-        height: 100%;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
         font-family: "Inter", sans-serif;
-        background-color: #f8f9fa;
+        background: radial-gradient(circle, #e1d7f1, #f7f9fc);
+
+        overflow: hidden;
       }
 
       .container {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
         max-width: 600px;
-        margin: 0 auto;
-        padding-bottom: 100px;
-        height: 100%;
-        padding-top: 100px;
+        margin: auto;
+        width: 100%;
+      }
+
+      .card {
+        width: 100%;
+      }
+
+      header,
+      footer {
+        background-color: #6950e8;
+        color: white;
+        text-align: center;
+        padding: 15px;
+        font-size: 18px;
+        font-weight: bold;
+        width: 100%;
+      }
+
+      header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+      }
+
+      footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
       }
 
       .logo {
@@ -57,7 +102,7 @@
       .preview {
         margin-top: 20px;
         max-width: 200px;
-        height: auto;
+        max-height: 200px;
         border-radius: 8px;
       }
 
@@ -71,9 +116,6 @@
         display: flex;
         justify-content: center;
         flex-direction: column;
-      }
-      .card {
-        height: 100%;
       }
 
       h5,
@@ -147,46 +189,110 @@
         display: none;
         margin-top: 20px;
       }
+      #previewContainer {
+        display: flex;
+        justify-content: center;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        margin-top: 10px;
+        display: none;
+      }
+
+      .file-format {
+        font-size: 14px;
+        color: #5d44c6;
+        font-weight: bold;
+      }
+
+      header,
+      footer {
+        background-color: #6950e8;
+        color: white;
+        text-align: center;
+        padding: 15px;
+        font-size: 18px;
+        font-weight: bold;
+        position: absolute;
+        width: 100%;
+      }
 
       @media (max-width: 768px) {
+        .card {
+          padding: 16px;
+        }
         .container {
-          padding-top: 50px;
+          padding-top: 70px;
+        }
+        .card-body {
+          padding: 20px;
+        }
+        .payment-amount {
+          font-size: 20px;
+        }
+        .logo {
+          width: 120px;
+        }
+        header,
+        footer {
+          padding: 10px;
+          font-size: 16px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .card {
+          padding: 16px;
+        }
+        .card-body {
+          padding: 15px;
+        }
+        .payment-amount {
+          font-size: 18px;
+        }
+        .logo {
+          width: 100px;
+        }
+        header,
+        footer {
+          font-size: 14px;
         }
       }
     </style>
   </head>
   <body>
+    <header>סולם יעקב Welcome to Our Payment Portal</header>
+
     <div class="container">
       <div class="card">
         <div class="card-body">
-          <div>
-            <div class="text-center">
-              <img
-                src="images/company-logo.png"
-                alt="Company Logo"
-                class="logo"
-              />
-            </div>
-            <div class="payment-amount">Payment Amount: $500.00</div>
-            <div id="imagePreviewContainer" class="text-center">
-              <h6>Preview of Uploaded Image:</h6>
-              <img
-                id="imagePreview"
-                class="preview"
-                src=""
-                alt="Payment Proof Preview"
-              />
-            </div>
+          <div class="text-center">
+            <img
+              src="images/company-logo.png"
+              alt="Company Logo"
+              class="logo"
+            />
           </div>
+          <div class="payment-amount">Payment Amount: $500.00</div>
+
+          <div id="previewContainer">
+            <h6>Preview:</h6>
+            <img id="imagePreview" class="preview" src="" alt="Preview" />
+            <canvas id="pdfPreview" class="preview"></canvas>
+            <span id="fileFormat" class="file-format"></span>
+          </div>
+
           <div class="mb-3">
-            <label for="paymentProof">Upload Payment Proof</label>
+            <label for="paymentProof"
+              >Upload Payment Proof (PNG, JPG, PDF)</label
+            >
             <div class="file-input-container">
               <input
                 type="file"
                 class="form-control-file"
                 id="paymentProof"
-                accept="image/*"
-                onchange="previewImage()"
+                accept="image/png, image/jpeg, application/pdf"
+                onchange="previewFile()"
                 required
               />
               <label class="file-input-label" for="paymentProof"
@@ -201,34 +307,68 @@
         </div>
       </div>
     </div>
-
-    <script
-      src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"
-      integrity="sha384-oBqDVmMz4fnFO9gyb2zVJ6gNwAYDdDpmF5Ll0w8J6R1sTQddgWxVrIs4iDFl5jY6p"
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"
-      integrity="sha384-pzjw8f+ua7Kw1TIq0o0xkKvV6cbn7pghjyARQKGrt6DfdD2XlcuDhC6eoSx6NDBE"
-      crossorigin="anonymous"
-    ></script>
+    <footer>© 2025. All rights reserved.</footer>
 
     <script>
-      function previewImage() {
+      function previewFile() {
         const fileInput = document.getElementById("paymentProof");
-        const previewContainer = document.getElementById(
-          "imagePreviewContainer"
-        );
-        const previewImage = document.getElementById("imagePreview");
+        const previewContainer = document.getElementById("previewContainer");
+        const imagePreview = document.getElementById("imagePreview");
+        const pdfPreview = document.getElementById("pdfPreview");
+        const fileFormat = document.getElementById("fileFormat");
 
         const file = fileInput.files[0];
+
         if (file) {
-          const reader = new FileReader();
-          reader.onload = function (e) {
-            previewImage.src = e.target.result;
-            previewContainer.style.display = "block";
-          };
-          reader.readAsDataURL(file);
+          const fileType = file.type;
+          const fileName = file.name;
+          const fileExt = fileName.split(".").pop().toUpperCase();
+
+          fileFormat.textContent = `Format: ${fileExt}`;
+
+          if (fileType.startsWith("image/")) {
+            // Image Preview
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              imagePreview.src = e.target.result;
+              imagePreview.style.display = "block";
+              pdfPreview.style.display = "none";
+              previewContainer.style.display = "flex";
+            };
+            reader.readAsDataURL(file);
+          } else if (fileType === "application/pdf") {
+            // PDF Preview (First Page)
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              const typedArray = new Uint8Array(e.target.result);
+              pdfjsLib
+                .getDocument(typedArray)
+                .promise.then((pdf) => {
+                  return pdf.getPage(1);
+                })
+                .then((page) => {
+                  const scale = 0.8;
+                  const viewport = page.getViewport({ scale: scale });
+                  const context = pdfPreview.getContext("2d");
+
+                  pdfPreview.width = viewport.width;
+                  pdfPreview.height = viewport.height;
+
+                  const renderContext = {
+                    canvasContext: context,
+                    viewport: viewport,
+                  };
+                  page.render(renderContext);
+
+                  imagePreview.style.display = "none";
+                  pdfPreview.style.display = "block";
+                  previewContainer.style.display = "flex";
+                });
+            };
+            reader.readAsArrayBuffer(file);
+          } else {
+            previewContainer.style.display = "none";
+          }
         } else {
           previewContainer.style.display = "none";
         }
