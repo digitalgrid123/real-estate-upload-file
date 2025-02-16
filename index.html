@@ -205,6 +205,20 @@
         font-weight: bold;
       }
 
+      .hidden {
+        display: none;
+      }
+      .message {
+        font-size: 16px;
+        margin-top: 10px;
+      }
+      .success {
+        color: green;
+      }
+      .error {
+        color: red;
+      }
+
       header,
       footer {
         background-color: #6950e8;
@@ -302,8 +316,16 @@
           </div>
 
           <div class="mt-4">
-            <button type="submit" class="btn btn-primary">Submit</button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              onclick="submitForm()"
+            >
+              Submit
+            </button>
           </div>
+
+          <p id="message" class="message hidden"></p>
         </div>
       </div>
     </div>
@@ -373,6 +395,89 @@
           previewContainer.style.display = "none";
         }
       }
+    </script>
+    <script>
+      let globalToken = "";
+
+      function getQueryParam(name) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
+      }
+
+      function decodeToken() {
+        const token = getQueryParam("token");
+
+        if (token) {
+          try {
+            const decodedString = atob(token);
+            const jsonData = JSON.parse(decodedString);
+
+            if (jsonData.amount) {
+              document.querySelector(
+                ".payment-amount"
+              ).textContent = `Payment Amount: $${jsonData.amount}`;
+            }
+
+            globalToken = token;
+            console.log("Decoded Token Data:", jsonData);
+          } catch (error) {
+            console.error("Invalid token format:", error);
+          }
+        } else {
+          console.error("No token found in the URL");
+        }
+      }
+
+      async function submitForm() {
+        const fileInput = document.getElementById("paymentProof");
+        const message = document.getElementById("message");
+
+        message.classList.add("hidden"); // Hide previous messages
+
+        if (!fileInput.files.length) {
+          message.textContent = "Please select a file before submitting.";
+          message.className = "message error";
+          message.classList.remove("hidden");
+          return;
+        }
+
+        if (!globalToken) {
+          message.textContent = "No token found. Cannot proceed.";
+          message.className = "message error";
+          message.classList.remove("hidden");
+          return;
+        }
+
+        const formData = new FormData();
+        formData.append("token", globalToken);
+        formData.append("attachment", fileInput.files[0]);
+
+        try {
+          const response = await fetch(
+            "https://realestate.medsafetyexperts.com/api/payment/receipt/upload",
+            {
+              method: "POST",
+              body: formData,
+            }
+          );
+
+          if (response.ok) {
+            message.textContent = "File uploaded successfully!";
+            message.className = "message success";
+            fileInput.value = ""; // Clear file input after upload
+          } else {
+            message.textContent = "Something went wrong. Please try again.";
+            message.className = "message error";
+          }
+        } catch (error) {
+          message.textContent = "Error: Unable to upload file.";
+          message.className = "message error";
+        }
+
+        message.classList.remove("hidden");
+      }
+
+      decodeToken();
     </script>
   </body>
 </html>
