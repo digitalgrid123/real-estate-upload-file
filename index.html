@@ -338,8 +338,12 @@
         const imagePreview = document.getElementById("imagePreview");
         const pdfPreview = document.getElementById("pdfPreview");
         const fileFormat = document.getElementById("fileFormat");
+        const message = document.getElementById("message");
 
         const file = fileInput.files[0];
+
+        message.textContent = "";
+        message.classList.add("hidden");
 
         if (file) {
           const fileType = file.type;
@@ -419,7 +423,6 @@
             }
 
             globalToken = token;
-            console.log("Decoded Token Data:", jsonData);
           } catch (error) {
             console.error("Invalid token format:", error);
           }
